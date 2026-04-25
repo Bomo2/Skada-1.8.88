@@ -92,28 +92,33 @@ do
 	-- adds a module to the loadable modules table.
 	local unpack = unpack
 	function Skada:RegisterModule(...)
-		local module = module_table(...)
-		if not module then return end
+    local module = module_table(...)
+    if not module then return end
 
-		-- add to loadable modules table
-		self.LoadableModules = self.LoadableModules or new()
-		self.LoadableModules[#self.LoadableModules + 1] = module
+    -- add to loadable modules table
+    self.LoadableModules = self.LoadableModules or new()
+    self.LoadableModules[#self.LoadableModules + 1] = module
 
-		-- add its check button
-		self.options.args.modules.args.blocked.args[module.name] = {
-			type = "toggle",
-			name = function()
-				if module.deps and self:IsDisabled(unpack(module.deps)) then
-					return format("\124cffff0000%s\124r", L[module.name])
-				end
-				return L[module.name]
-			end,
-			desc = module.desc
-		}
+    -- guard: options may not be initialized yet
+    if not (self.options and self.options.args and self.options.args.modules and self.options.args.modules.args and self.options.args.modules.args.blocked) then
+        return
+    end
 
-		-- return it so that RegisterDisplay changes order
-		return self.options.args.modules.args.blocked.args[module.name]
-	end
+    -- add its check button
+    self.options.args.modules.args.blocked.args[module.name] = {
+        type = "toggle",
+        name = function()
+            if module.deps and self:IsDisabled(unpack(module.deps)) then
+                return format("\124cffff0000%s\124r", L[module.name])
+            end
+            return L[module.name]
+        end,
+        desc = module.desc
+    }
+
+    -- return it so that RegisterDisplay changes order
+    return self.options.args.modules.args.blocked.args[module.name]
+end
 
 	-- when modules are created w make sure to save
 	-- their english "name" then localize "moduleName"
@@ -699,7 +704,7 @@ do
 	end
 
 	local function update_fake_data(self)
-		randomize_fake_data(self.current, self.profile.updatefrequency or 0.25)
+		randomize_fake_data(self.current, 1)
 		self:UpdateDisplay(true)
 	end
 
@@ -726,7 +731,7 @@ do
 
 		self:Wipe()
 		self.current = generate_fake_data()
-		update_timer = update_timer or self:ScheduleRepeatingTimer(update_fake_data, self.profile.updatefrequency or 0.25, self)
+		update_timer = update_timer or self:ScheduleRepeatingTimer(update_fake_data, 1, self)
 	end
 end
 
@@ -1195,27 +1200,35 @@ end
 function Skada:DBM(_, mod, wipe)
 	if not wipe and mod and mod.combatInfo then
 		local set = self.current or self.last -- just in case DBM was late.
-		if set and not set.success and mod.combatInfo.name and (not set.mobname or find(lower(set.mobname), lower(mod.combatInfo.name)) ~= nil) then
-			set.success = true
-			set.gotboss = set.gotboss or mod.combatInfo.creatureId or true
-			set.mobname = (not set.mobname or set.mobname == L["Unknown"]) and mod.combatInfo.name or set.mobname
+		if set and not set.success and mod.combatInfo.name then
+			local nameMatch = true
+			if set.mobname then
+				local a = lower(set.mobname):gsub("[%-%'%s]", "")
+				local b = lower(mod.combatInfo.name):gsub("[%-%'%s]", "")
+				nameMatch = (find(a, b, 1, true) ~= nil) or (find(b, a, 1, true) ~= nil)
+			end
+			if nameMatch then
+				set.success = true
+				set.gotboss = set.gotboss or mod.combatInfo.creatureId or true
+				set.mobname = (not set.mobname or set.mobname == L["Unknown"]) and mod.combatInfo.name or set.mobname
 
-			if self.tempsets then -- phases
-				for i = 1, #self.tempsets do
-					local s = self.tempsets[i]
-					if s and not s.success then
-						s.success = true
-						s.gotboss = s.gotboss or mod.combatInfo.creatureId or true
-						s.mobname = (not s.mobname or s.mobname == L["Unknown"]) and mod.combatInfo.name or s.mobname
+				if self.tempsets then -- phases
+					for i = 1, #self.tempsets do
+						local s = self.tempsets[i]
+						if s and not s.success then
+							s.success = true
+							s.gotboss = s.gotboss or mod.combatInfo.creatureId or true
+							s.mobname = (not s.mobname or s.mobname == L["Unknown"]) and mod.combatInfo.name or s.mobname
+						end
 					end
 				end
+
+				self:Debug("\124cffffbb00COMBAT_BOSS_DEFEATED\124r: DBM")
+				self:SendMessage("COMBAT_BOSS_DEFEATED", set)
+
+				self:StopSegment(L["Smart Stop"])
+				self:SetModes()
 			end
-
-			self:Debug("\124cffffbb00COMBAT_BOSS_DEFEATED\124r: DBM")
-			self:SendMessage("COMBAT_BOSS_DEFEATED", set)
-
-			self:StopSegment(L["Smart Stop"])
-			self:SetModes()
 		end
 	end
 end
@@ -2277,46 +2290,5 @@ do
 				firsthit_timer = nil
 			end
 		end
-	end
-end
-
--------------------------------------------------------------------------------
--- smart stop
-
-do
-	local smartstop_timer = nil
-	-- list of creature IDs to be ignored
-	local ignored_creature = {
-		[37217] = true, -- ICC: Precious
-		[37025] = true -- iCC: Stinky
-	}
-
-	local function SmartStop(set)
-		if smartstop_timer then
-			Skada:CancelTimer(smartstop_timer, true)
-			smartstop_timer = nil
-		end
-
-		if set.endtime then return end
-		Skada:StopSegment(L["Smart Stop"])
-		Skada:SetModes()
-	end
-
-	function Skada:SmartStop(set)
-		if
-			not self.profile.smartstop and -- feature disabled?
-			not set or set.stopped and -- no set or already stopped?
-			not set.gotboss and -- not a boss fight?
-			not ignored_creature[set.gotboss] -- an ignored boss fight?
-		then
-			return
-		end
-
-		-- (re)schedule smart stop.
-		if smartstop_timer then
-			Skada:CancelTimer(smartstop_timer, true)
-			smartstop_timer = nil
-		end
-		smartstop_timer = self:ScheduleTimer(SmartStop, self.profile.smartwait or 3, set)
 	end
 end

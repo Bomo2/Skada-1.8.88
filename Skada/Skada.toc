@@ -1,23 +1,23 @@
 ## Interface: 30300
-## Title: Skada
+## Title: |cFFFFFFFFS|r|cFFCCCCFFk|r|cFF9999FFa|r|cFF6666FFd|r|cFF0000FFa|r
 ## Notes: Modular damage meter.
-## Notes-deDE: Ein Damage-Meter.
-## Notes-esES: Un medidor de daño.
-## Notes-esMX: Un medidor de daño.
-## Notes-frFR: Un damage meter.
-## Notes-koKR: 데미지 미터 모듈입니다.
-## Notes-ruRU: Измеритель урона.
-## Notes-zhCN: 模块化伤害统计。
-## Notes-zhTW: 模組化的傷害統計。
+## Notes-deDE: Modularer Schadensanzeiger.
+## Notes-esES: Medidor de daño modular.
+## Notes-esMX: Medidor de daño modular.
+## Notes-frFR: Compteur de dégâts modulaire.
+## Notes-koKR: 모듈형 피해량 측정기.
+## Notes-ruRU: Модульный индикатор повреждений.
+## Notes-zhCN: 模組化傷害計.
+## Notes-zhTW: 模块化伤害计量器.
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibDBIcon-1.0, AceGUI-3.0-SharedMediaWidgets, LibBossIDs-1.0, LibFail-1.0
 ## LoadOnDemand: 0
 ## SavedVariables: SkadaDB
 ## SavedVariablesPerCharacter: SkadaCharDB
 ## DefaultState: enabled
-## Author: Kader (|cff808080bkader#5341|r)
-## Version: 1.8.87
-## X-Date: 2024-03-23 @ 11:22 |cff808080UTC|r
-## X-Credits: Zarnivoop
+## Author: Bomo
+## Version: 1.8.88
+## X-Date: 2026-03-21 @ 21:03 |cff808080UTC|r
+## X-Credits: Kader, Zarnivoop
 ## X-Curse-Project-ID: 623633
 ## X-Category: Combat
 ## X-License: MIT/X

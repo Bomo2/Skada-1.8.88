@@ -121,7 +121,38 @@ local ignored_spells = {
 -- ignored creautre ids (use creature ID: [cretureID] = true)
 -- a list of creature IDs of which CLEU <<DAMAGE>> events are ignored.
 
-local ignored_creatures = {}
+local ignored_creatures = {
+  -- Icecrown Citadel Critters
+  [2110] = true,   -- Black Rat
+  [3444] = true,   -- Dig Rat
+  [4076] = true,   -- Roach
+  [14881] = true,  -- Spider
+	[37782] = true,  -- Flesh-eating Insect
+	[38228] = true,  -- Plagued Insect
+  [38229] = true,  -- Frozen Insect
+	[38231] = true,  -- Blood Parasite
+	[38232] = true,  -- Blood Spider
+	[38370] = true,  -- Frozen Insect
+  
+  -- Ignoring damage dealt from the following targets (ICC)
+  [36897] = true,  -- Little Ooze (Rotface)
+  [36899] = true,  -- Big Ooze (Rotface)
+  [37038] = true,  -- Vengeful Fleshreaper (add running around Rotface/Festergut)
+  [37695] = true,  -- Drudge Ghoul (The Lich King)
+  [37698] = true,  -- Shambling Horror (The Lich King)
+  [37799] = true,  -- Vile Spirit (The Lich King)  
+  [38369] = true,  -- Dark Nucleus (Blood Prince Council)
+  [38454] = true,  -- Kinectic Bomb (Blood Prince Council)
+  
+  -- Ignoring damage dealt from the following targets (RS)
+  [39814] = true,  -- Onyx Flamecaller (General Zarithrian)
+  [39899] = true,  -- Baltharus the Warborn (Clone)
+  [40419] = true,  -- Charscale Assaulter (Patrol add)
+  [40423] = true,  -- Charscale Commander (Patrol add)
+  [40683] = true,  -- Living Ember (Halion)
+
+}
+ns.ignored_creatures = ignored_creatures
 
 -------------------------------------------------------------------------------
 -- misc tables
@@ -454,7 +485,7 @@ do
 
 		-- The Lich King: Important targets
 		[36597] = L["Important targets"], -- The Lich King
-		[36609] = L["Important targets"], -- Val'kyr Shadowguard
+		--[36609] = L["Important targets"], -- Val'kyr Shadowguard
 		[36633] = L["Important targets"], -- Ice Sphere
 		[36701] = L["Important targets"], -- Raging Spirit
 		[39190] = L["Important targets"], -- Wicked Spirit
@@ -530,9 +561,20 @@ do
 
 		-- ICC: Sindragosa
 		[36853] = {
-			text = L["%s - Phase 2"],
-			start = 0.35
-		},
+      {
+			  text = L["%s - Phase 2"],
+			  start = 0.35
+      },
+      {
+        name = "Phase 2 - Pushed",
+        start = 0.37,
+        stop = 0.35
+      },
+      {
+        name = "Tombs - Pushed",
+        start = 0.05
+      }
+    },     
 
 		-- ICC: The Lich King
 		[36597] = {
@@ -541,12 +583,18 @@ do
 			stop = 0.1
 		},
 
-		-- ICC: Valkyrs overkilling
+		-- ICC: Valkyrs
 		[36609] = {
-			name = L["Valkyrs overkilling"],
-			start = 0.5,
-			useful = true,
-			diff = {["10h"] = true, ["25h"] = true}
+      {
+			  name = L["Valkyrs overkilling"],
+			  start = 0.5,
+			  diff = {["10h"] = true, ["25h"] = true}
+      },
+      {
+			  name = "Val'kyr Shadowguard",
+			  stop = 0.5,
+			  diff = {["10h"] = true, ["25h"] = true}
+      }
 		},
 
 		-- ToC: Anub'arak

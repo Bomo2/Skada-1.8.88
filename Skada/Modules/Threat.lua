@@ -177,7 +177,7 @@ Skada:RegisterModule("Threat", function(L, P, _, _, M, O)
 						data.valuetext = Skada:FormatValueCols(
 							mode_cols.Threat and format_threatvalue(data.threat),
 							mode_cols.TPS and get_tps(data.threat),
-							mode_cols.Percent and Skada:FormatPercent(data.value, max(0.000001, max_threat))
+							mode_cols.Percent and Skada:FormatPercent(data.value, max(0.000001, max_threat), 0)
 						)
 
 						if win.metadata then
@@ -200,7 +200,7 @@ Skada:RegisterModule("Threat", function(L, P, _, _, M, O)
 						data.valuetext = Skada:FormatValueCols(
 							mode_cols.Threat and format_threatvalue(data.threat),
 							mode_cols.TPS and get_tps(data.threat),
-							mode_cols.Percent and Skada:FormatPercent(percent)
+							mode_cols.Percent and Skada:FormatPercent(percent, nil, 0)
 						)
 					else
 						data.id = nil

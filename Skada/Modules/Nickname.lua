@@ -322,11 +322,11 @@ Skada:RegisterModule("Nickname", function(L, P, G, _, _, O)
 			local len = strlen(name)
 			if len == 0 then
 				return true, nil
-			elseif len > 12 then
-				return false, L["Your nickname is too long, max of 12 characters is allowed."]
+			elseif len > 20 then
+				return false, L["Your nickname is too long, max of 20 characters is allowed."]
 			end
 
-			local notallow = strfind(name, "[^a-zA-Z�������%s]")
+			local notallow = strfind(name, "[^a-zA-Z%s]")
 			if notallow then
 				return false, L["Only letters and two spaces are allowed."]
 			end
@@ -542,7 +542,7 @@ Skada:RegisterModule("Nickname", function(L, P, G, _, _, O)
 			if P.ignorenicknames and guid ~= Skada.userGUID then
 				nickname = false
 			-- me?
-			elseif guid == Skada.userGUID then
+			elseif guid == Skada.userGUID or guid == UnitGUID("player") then
 				nickname = G.nickname or false
 			-- well! we've got one!
 			elseif mode.db and mode.db.cache[guid] then

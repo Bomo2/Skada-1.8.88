@@ -16,6 +16,49 @@ local function format_valuetext(d, columns, total, dps, metadata, subview)
 	end
 end
 
+local GetUnitIdFromGUID = Skada.GetUnitIdFromGUID
+local GetCreatureId = Skada.GetCreatureId
+local UnitHealthMax = UnitHealthMax
+local floor = math.floor
+local user_units = Skada.custom_units -- Edit Skada\Core\Tables.lua
+
+-- tracking tables for HP thresholds
+local threshold_units = {}  -- [guid] = {curval, minval}
+local threshold_ignored = {} -- [guid] = true
+
+local function check_threshold(guid, name, amount, overkill)
+    if not guid or threshold_ignored[guid] then return true end
+
+    local creatureId = GetCreatureId(guid)
+    local unit_def = user_units[creatureId]
+    if not unit_def then return false end
+
+    -- supports both formats: direct or normalized by Enemy Damage Taken
+    local stop = unit_def.stop or (unit_def[1] and unit_def[1].stop)
+    if not stop then return false end
+
+    local tracking = threshold_units[guid]
+    if not tracking then
+        local uid = GetUnitIdFromGUID(guid)
+        local maxval = uid and UnitHealthMax(uid)
+        if not maxval or maxval == 0 then return false end
+
+        tracking = {
+            curval = maxval - amount - (overkill or 0),
+            minval = floor(maxval * stop)
+        }
+        threshold_units[guid] = tracking
+        return false
+    end
+
+    tracking.curval = tracking.curval - amount - (overkill or 0)
+    if tracking.curval <= tracking.minval then
+        threshold_ignored[guid] = true
+        return true
+    end
+    return false
+end
+
 ---------------------------------------------------------------------------
 -- Damage Done Module
 
@@ -189,6 +232,11 @@ Skada:RegisterModule("Damage", function(L, P)
 			not ignored_creatures[GetCreatureId(t.dstGUID)] and
 			t.spellid and not ignored_spells[t.spellid]
 		then
+    
+      if check_threshold(t.dstGUID, t.dstName, t.amount or 0, t.overkill or 0) then
+          return
+      end
+      
 			dmg.actorid = t.srcGUID
 			dmg.actorname = t.srcName
 			dmg.actorflags = t.srcFlags
@@ -591,7 +639,7 @@ Skada:RegisterModule("Damage", function(L, P)
 	function mode:Update(win, set)
 		win.title = win.class and format("%s (%s)", L["Damage"], L[win.class]) or L["Damage"]
 
-		local total = set and set:GetDamage(win.class)
+		local total = set and set:GetDamage(win.class, true)
 		if not total or total == 0 then
 			return
 		elseif win.metadata then
@@ -603,7 +651,7 @@ Skada:RegisterModule("Damage", function(L, P)
 
 		for actorname, actor in pairs(actors) do
 			if win:show_actor(actor, set, true) and actor.damage then
-				local dps, amount = actor:GetDPS(set, false, false, not mode_cols.DPS)
+				local dps, amount = actor:GetDPS(set, true, false, not mode_cols.DPS)
 				if amount > 0 then
 					nr = nr + 1
 
@@ -620,7 +668,7 @@ Skada:RegisterModule("Damage", function(L, P)
 		local actor = set and win and set:GetActor(win.actorname, win.actorid)
 		if not actor then return end
 
-		local dps, amount = actor:GetDPS(set, false, false, not mode_cols.sDPS)
+		local dps, amount = actor:GetDPS(set, true, false, not mode_cols.sDPS)
 		local valuetext = Skada:FormatValueCols(
 			mode_cols.Damage and Skada:FormatNumber(amount),
 			mode_cols.sDPS and Skada:FormatNumber(dps)
@@ -630,7 +678,7 @@ Skada:RegisterModule("Damage", function(L, P)
 	mode_target.GetSetSummary = mode_spell.GetSetSummary
 
 	function mode:GetSetSummary(set, win)
-		local dps, amount = set:GetDPS(nil, win and win.class)
+		local dps, amount = set:GetDPS(true, win and win.class)
 		local valuetext = Skada:FormatValueCols(
 			mode_cols.Damage and Skada:FormatNumber(amount),
 			mode_cols.DPS and Skada:FormatNumber(dps)
@@ -712,6 +760,8 @@ Skada:RegisterModule("Damage", function(L, P)
 
 	function mode:CombatLeave()
 		wipe(dmg)
+    wipe(threshold_units)
+    wipe(threshold_ignored)
 	end
 
 	function mode:SetComplete(set)
