@@ -15,7 +15,7 @@ Damage module : (More oriented for Icecrown Citadel and Ruby Sanctum)
 Ennemy Damage Taken :
 
   - Added `Phase 2 - Pushed` unit to see which player(s) didn't stopped between 37-35% on Syndragosa encounter.
-  - Added `Tombs - Pushed` unit to see which player(s) didn't stopped on the last 5% tombs health on Syndragosa encounter.
+  - Added `Tombs - Pushed` unit to see which player(s) didn't stopped on the last 3% tombs health on Syndragosa encounter.
   - Improved `Val'kyr Shadowguard` unit to get with precision the useful damage and in the same time you still have `Valkyrs overkilling` separated in another unit (for Lich King encounter).
 
 Nicknames module :
