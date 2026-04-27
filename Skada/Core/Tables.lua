@@ -485,7 +485,7 @@ do
 
 		-- The Lich King: Important targets
 		[36597] = L["Important targets"], -- The Lich King
-		--[36609] = L["Important targets"], -- Val'kyr Shadowguard
+    --[36609] = L["Important targets"], -- Val'kyr Shadowguard
 		[36633] = L["Important targets"], -- Ice Sphere
 		[36701] = L["Important targets"], -- Raging Spirit
 		[39190] = L["Important targets"], -- Wicked Spirit
@@ -572,7 +572,8 @@ do
       },
       {
         name = "Tombs - Pushed",
-        start = 0.05
+        start = 0.03,
+        stop = 0.01
       }
     },     
 
@@ -588,6 +589,7 @@ do
       {
 			  name = L["Valkyrs overkilling"],
 			  start = 0.5,
+        useful = true,
 			  diff = {["10h"] = true, ["25h"] = true}
       },
       {
